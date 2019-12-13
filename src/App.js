@@ -1,26 +1,87 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { Fragment } from 'react';
+import api from './services/api';
+import Login from './components/Login';
+import { Route, Switch, withRouter } from 'react-router-dom';
+import NewUser from './components/NewUser'
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+class App extends React.Component {
+  state = {
+    auth: { currentUser: {} }
+  };
+
+  componentDidMount() {
+    // console.log('CDM in APP');
+    const token = localStorage.getItem('token');
+    if (token) {
+      api.auth.getCurrentUser().then(user => {
+        
+        const currentUser = { currentUser: user };
+
+
+        this.setState({ auth: currentUser });
+
+      });
+
+    }
+
+  }
+
+  handleLogin = user => {
+    const currentUser = {user: user.user};
+    
+    localStorage.setItem('token', user.token);
+
+    this.setState({ auth: { currentUser } });
+  };
+
+  handleLogout = () => {
+    localStorage.removeItem('token');
+    this.setState({
+      auth: { currentUser: {} }
+    });
+    this.props.history.push('/')
+  };
+
+
+  render() {
+
+    return (
+      <Fragment>
+
+        <Switch>
+          <Route
+            path="/login"
+            render={routerProps => {
+              return (
+                <Fragment>
+                  <Login {...routerProps} handleLogin={this.handleLogin} />
+                </Fragment>
+
+              );
+            }}
+          />
+
+          <Route path="/signup" render={routerProps => {
+            return (
+              <Fragment>
+                <NewUser {...routerProps} handleLogin={this.handleLogin} />
+              </Fragment>
+            );
+          }}
+          />
+        </Switch>
+
+      </Fragment>
+
+
+    );
+  }
+
 }
 
-export default App;
+
+export default withRouter(App);
+
+
+
